@@ -1,0 +1,36 @@
+body{
+  --color-text:#fff;
+  --color-bg:#1f174e;
+  --color-bg-2:#151436;
+  --color-bg-3:#000;
+  --color-link:#8596df;
+  --color-link-hover:#723bb7;background:radial-gradient(ellipse at 30% 48%,var(--color-bg) 0,var(--color-bg-2) 45%,var(--color-bg-3) 150%);
+  min-height: 600px;
+}
+h3{text-align: center;}
+.fixed{text-align: justify;}
+
+  .fixed {
+    position: fixed;
+    width: 230px;
+    margin-left: -230px;
+    padding:10px;
+    top: 10px; bottom: 10px;
+    overflow-y: auto;
+    height: 80%;
+  }
+      .fixed h3 {
+        top: -10px;
+        margin: 0;
+        padding: 0px;
+        color: #fff;
+      }
+      .fixed p {margin: 10px 10px 15px;}
+      .fixed {
+          margin:0;
+          width: 100%;
+          position:relative;
+      }
+
+.center {display: block; margin-left: auto;margin-right: auto;text-align: center;}
+#YourIDName{min-height: 600px;}
