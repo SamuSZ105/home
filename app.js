@@ -53,4 +53,3 @@ window.onload = function() {
   // 
   
   }
-};
