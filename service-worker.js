@@ -1,5 +1,4 @@
 self.addEventListener('install', function() {
-  event.waitUntil(
     caches.open('v1').then(function(cache) {
       return cache.addAll([
         '/home/',
@@ -14,5 +13,4 @@ self.addEventListener('install', function() {
         '/home/bootstrap/popper.min.js'
       ]);
     })
-  );
 });
