@@ -1,0 +1,312 @@
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Params } from '@angular/router';
+import { ResponseType } from '@microsoft/microsoft-graph-client';
+import { BehaviorSubject, catchError, Observable, throwError } from 'rxjs';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { User } from '../interfaces/user';
+/* import * as MicrosoftGraph from '@microsoft/microsoft-graph-types'; */
+
+@Injectable({
+  providedIn: 'root'
+})
+export class GraphService {
+
+  public items: Observable<User[]>;
+  errorMsg:string ="";
+  public isAuth=false;
+  public pageSize = 100;
+  public pageCount = 0;
+  public itemCount = 0;
+  public currentPage = 0;
+  public myItems;
+  public myItemsLenght;
+  public pages = [];
+  private url = "https://graph.microsoft.com/v1.0/";
+  private readonly _items: BehaviorSubject<any[]>;
+  private _lastQuery: Params | undefined;
+
+  constructor( private http:HttpClient, private oidcSecurityService:OidcSecurityService) { }
+
+  getToken(){
+    return this.oidcSecurityService.getAccessToken();
+  }
+
+  getExp(){
+    if(this.oidcSecurityService.isAuthenticated())
+    {
+      let user = this.oidcSecurityService.getUserData();
+
+      var exp = user['exp'] * 1000;
+
+      if(exp >= Date.now()){
+          //console.log('not expired')
+      }
+      else{
+
+        this.oidcSecurityService.logoffLocal()
+        location.reload();
+        console.log('token expired')
+      }
+      return true
+    }
+  else
+    {
+
+    }
+  }
+  getRefreshToken(){
+    return this.oidcSecurityService.getRefreshToken();
+  }
+  getUsers(token):Observable<User[]>{
+
+    const headers = new HttpHeaders()
+    .set('Content-Type', 'application/json')
+    .set('Access-Control-Allow-Origin', '*')
+    .set("Authorization", `Bearer ${token}`)
+    .set("ConsistencyLevel", "eventual");
+
+    const httpOptions = {
+      headers: headers,
+      withCredentials: false
+    };
+
+    return this.http.get<User[]>(this.url+`users`, httpOptions).pipe(
+      catchError(error => {
+          let errorMsg: string;
+          if (error.error instanceof ErrorEvent) {
+              this.errorMsg = `Error: ${error.error.message}`;
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          } else {
+              this.errorMsg = this.getServerErrorMessage(error);
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          }
+          return throwError(this.errorMsg);
+
+      })
+    );
+  }
+
+  postmail(token, sendMail){
+const headers = new HttpHeaders()
+.set('Content-Type', 'application/json')
+.set("Authorization", `Bearer ${token}`)
+/* .set('Access-Control-Allow-Origin', '*')
+.set("Authorization", `Bearer ${token}`)
+.set("ConsistencyLevel", "eventual") */
+
+let blob:any;
+blob = 'blob';
+const httpOptions = {
+  headers: headers,
+  responseType: blob,
+  withCredentials: false
+};
+
+return this.http.post<any>(this.url+`me/sendMail`,sendMail,httpOptions).pipe(
+  catchError(error => {
+      let errorMsg: string;
+      if (error.error instanceof ErrorEvent) {
+          this.errorMsg = `Error: ${error.error.message}`;
+          console.log(this.errorMsg);
+          //alert(this.errorMsg);
+      } else {
+          this.errorMsg = this.getServerErrorMessage(error);
+          console.log(this.errorMsg);
+          //alert(this.errorMsg);
+      }
+      return throwError(this.errorMsg);
+
+  })
+);
+
+
+}
+//----------------------end post
+
+  getUsersearch(token,val):Observable<User[]>{
+
+    const headers = new HttpHeaders()
+    .set('Content-Type', 'application/json')
+    .set('Access-Control-Allow-Origin', '*')
+    .set("Authorization", `Bearer ${token}`)
+    .set("ConsistencyLevel", "eventual");
+
+    const httpOptions = {
+      headers: headers,
+      withCredentials: false
+    };
+
+    return this.http.get<User[]>(this.url+`users?$search="displayName:${val}" OR "userPrincipalName:${val}" OR "mail:${val}"&$select=displayName,userPrincipalName`, httpOptions).pipe(
+      catchError(error => {
+          let errorMsg: string;
+          if (error.error instanceof ErrorEvent) {
+              this.errorMsg = `Error: ${error.error.message}`;
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          } else {
+              this.errorMsg = this.getServerErrorMessage(error);
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          }
+          return throwError(this.errorMsg);
+
+      })
+    );
+  }
+
+  getUserPhoto(token,id){
+    //https://graph.microsoft.com/v1.0/users/" + user.userIdentifier + "/photo/48x48/$value
+    const headers = new HttpHeaders()
+    //.set('Content-Type', 'image/jpeg')
+    .set('Access-Control-Allow-Origin', '*')
+    .set("Authorization", `Bearer ${token}`)
+    .set("ConsistencyLevel", "eventual")
+
+    let blob:any;
+    blob = 'blob';
+    const httpOptions = {
+      headers: headers,
+      responseType: blob,
+      withCredentials: false
+    };
+
+    return this.http.get<any>(this.url+`users/${id}/photo/$value`,httpOptions).pipe(
+      catchError(error => {
+          let errorMsg: string;
+          if (error.error instanceof ErrorEvent) {
+              this.errorMsg = `Error: ${error.error.message}`;
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          } else {
+              this.errorMsg = this.getServerErrorMessage(error);
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          }
+          return throwError(this.errorMsg);
+
+      })
+    );
+
+
+  }
+
+  getUser(token,val):Observable<User[]>{
+
+    const headers = new HttpHeaders()
+    .set('Content-Type', 'application/json')
+    .set('Access-Control-Allow-Origin', '*')
+    .set("Authorization", `Bearer ${token}`)
+    .set("ConsistencyLevel", "eventual");
+
+    const httpOptions = {
+      headers: headers,
+      withCredentials: false
+    };
+
+    return this.http.get<User[]>(this.url+`users?$search="displayName:${val}"&$select=displayName,mail,userPrincipalName,id`, httpOptions).pipe(
+      catchError(error => {
+          let errorMsg: string;
+          if (error.error instanceof ErrorEvent) {
+              this.errorMsg = `Error: ${error.error.message}`;
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          } else {
+              this.errorMsg = this.getServerErrorMessage(error);
+              console.log(this.errorMsg);
+              //alert(this.errorMsg);
+          }
+          return throwError(this.errorMsg);
+
+      })
+    );
+  }
+
+
+  queryAll(params?: Params): Observable<User[]> {
+
+    if(this.isAuth){
+
+    //console.log(params);
+    this._lastQuery = params;
+    let page = 0;
+    let sortAttribute = 'id';
+
+    if (params) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (params.hasOwnProperty('page')) {
+        page = +params['page'];
+      }
+
+      // eslint-disable-next-line no-prototype-builtins
+      if (params.hasOwnProperty('sort')) {
+        sortAttribute = params['sort'];
+      }
+    }
+
+    const start = page * this.pageSize;
+    const end = start + this.pageSize;
+
+    this.getUsers('').subscribe((items)=>{
+
+      this.myItems=items["containers"]
+      this.myItemsLenght=this.myItems.length
+    }
+
+    )
+    //console.log(myitems)
+    const selectedItems = this.myItems
+
+    //console.log( selectedItems.length)
+     // .sort((a, b) => SystemService.compareSystems(a, b, sortAttribute))
+     // .slice(start, end);
+
+    this.itemCount = this.myItemsLenght
+
+    this.computeAvailablePages(page);
+    this.currentPage = page;
+
+    this._items.next(selectedItems);
+    //console.log(this.items)
+    return this.items;
+  }
+  else{
+    return ;
+  }
+  }
+
+  private computeAvailablePages(page: number) {
+    this.pageCount = Math.ceil(this.myItemsLenght / this.pageSize);
+    this.pages.length = 0;
+    for (let i = 0; i < this.pageCount; i++) {
+      // @ts-ignore: Object is possibly 'null'.
+      this.pages.push({ index: i, active: i === page });
+    }
+  }
+
+  private getServerErrorMessage(error: HttpErrorResponse): string {
+    switch (error.status) {
+        case 404: {
+            return `404 Not Found: ${error.message}`;
+        }
+        case 403: {
+            return `403 Access Denied: ${error.message}`;
+        }
+        case 500: {
+            return `500 Internal Server Error: ${error.message}`;
+        }
+        case 409:{
+            return `409 App name or user already exist: ${error.message}`;
+        }
+        default: {
+            return `Unknown Server Error: ${error.message}`;
+        } case 200: {
+          return `Ok`;
+      }
+
+    }
+  }
+
+}
